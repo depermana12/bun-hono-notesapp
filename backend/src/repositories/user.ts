@@ -28,7 +28,7 @@ class UserRepository {
   public findById(userId: number) {
     return db.select().from(users).where(eq(users.id, userId));
   }
-  public async findByEmail(userEmail: string): Promise<SafeUser | null> {
+  public async findByEmail(userEmail: string): Promise<User | null> {
     try {
       const rows = await db
         .select()

@@ -1,11 +1,14 @@
 import UserRepository from "../repositories/user";
 import { decode, sign, verify } from "hono/jwt";
+import { HTTPException } from "hono/http-exception";
 
 type UserData = {
   name: string;
   email: string;
   password: string;
 };
+
+type UserLogin = Omit<UserData, "name">;
 
 class AuthService {
   constructor(private userRepository = new UserRepository()) {}
@@ -17,6 +20,20 @@ class AuthService {
     });
     const token = await this.generateToken(newUser.id);
     return { user: newUser, token };
+  }
+
+  public async signIn(userData: UserLogin) {
+    const user = await this.userRepository.findByEmail(userData.email);
+    if (
+      !user ||
+      !(await Bun.password.verify(userData.password, user.password))
+    ) {
+      throw new HTTPException(401, { message: "Invalid email or password" });
+    }
+
+    const { password, ...userNoPw } = user;
+    const token = await this.generateToken(user.id);
+    return { user: userNoPw, token };
   }
 
   private generateToken(userId: number) {
