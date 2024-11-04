@@ -1,17 +1,13 @@
 import { Hono } from "hono";
+import user from "./routes/auth";
 
-const app = new Hono();
+const app = new Hono().basePath("/api/v1");
 
 app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
 
-app.get("/api/hello", (c) => {
-  return c.json({
-    ok: true,
-    message: "hello from api",
-  });
-});
+app.route("/auth", user);
 
 export default {
   port: 3000,
