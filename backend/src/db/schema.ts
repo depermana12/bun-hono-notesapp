@@ -1,24 +1,18 @@
 import { relations } from "drizzle-orm";
-import {
-  integer,
-  pgTable,
-  varchar,
-  timestamp,
-  text,
-} from "drizzle-orm/pg-core";
+import { integer, pgTable, timestamp, text } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  name: varchar({ length: 255 }).notNull(),
-  email: varchar({ length: 255 }).notNull().unique(),
-  created_at: timestamp().defaultNow(),
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const notes = pgTable("notes", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   userId: integer("user_id").notNull(),
-  title: text().notNull(),
-  content: text().notNull(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at"),
 });
