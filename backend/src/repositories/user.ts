@@ -7,7 +7,7 @@ type NewUserData = {
   email: string;
   password: string;
 };
-type User = typeof users.$inferInsert;
+type User = typeof users.$inferInsert & { id: number };
 type SafeUser = Omit<User, "password">;
 
 class UserRepository {

@@ -16,17 +16,20 @@ user.post(
   "/signup",
   zValidator("json", signUpSchema, (result, c) => {
     if (!result.success) {
-      return c.json({ message: "invalid data", errors: result.error }, 400);
+      return c.json(
+        { message: "invalid data", errors: result.error.issues[0].message },
+        400,
+      );
     }
   }),
   async (c) => {
-    const user = c.req.valid("json");
-    const newUser = await auth.signUp(user);
+    const validatedUserInput = c.req.valid("json");
+    const { user, token } = await auth.signUp(validatedUserInput);
     return c.json(
       {
         message: "user created",
-        data: newUser,
-        token: "token",
+        data: user,
+        token,
       },
       201,
     );

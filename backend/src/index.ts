@@ -2,11 +2,6 @@ import { Hono } from "hono";
 import user from "./routes/auth";
 
 const app = new Hono().basePath("/api/v1");
-
-app.get("/", (c) => {
-  return c.text("Hello Hono!");
-});
-
 app.route("/auth", user);
 
 export default {
