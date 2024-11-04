@@ -13,13 +13,16 @@ type SafeUser = Omit<User, "password">;
 class UserRepository {
   public async addUser(userData: NewUserData): Promise<SafeUser> {
     try {
-      const rows = await db.insert(users).values(userData).returning();
+      const rows = await db.insert(users).values(userData).returning({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        created_at: users.createdAt,
+      });
       return rows[0];
     } catch (error) {
       //TODO throw to global error handler
-      throw new Error(
-        error instanceof Error ? "error add new user" : String(error),
-      );
+      throw new Error(error instanceof Error ? error.message : String(error));
     }
   }
   public findById(userId: number) {
