@@ -14,8 +14,8 @@ export const notes = pgTable("notes", {
   userId: integer("user_id").notNull(),
   title: text("title").notNull(),
   content: text("content").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at"),
 });
 
 export const notesRelations = relations(notes, ({ one }) => ({
