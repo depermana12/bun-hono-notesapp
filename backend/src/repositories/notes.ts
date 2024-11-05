@@ -26,9 +26,12 @@ class NoteRepository {
       throw new Error(error instanceof Error ? error.message : String(error));
     }
   }
-  public async findAll(): Promise<Note[]> {
+  public async findAll(userId: number): Promise<Note[]> {
     try {
-      const rows = await db.select().from(notes);
+      const rows = await db
+        .select()
+        .from(notes)
+        .where(eq(notes.userId, userId));
       return rows;
     } catch (error: unknown) {
       throw new Error(error instanceof Error ? error.message : String(error));

@@ -18,8 +18,8 @@ class NoteService {
     }
     return note;
   }
-  public getNotes() {
-    return this.noteRepository.findAll();
+  public getNotes(userId: number) {
+    return this.noteRepository.findAll(userId);
   }
   public updateNote(
     noteId: number,
