@@ -20,7 +20,4 @@ app.onError((err, c) => {
   return c.json({ error: "oopss thats on us" }, 500);
 });
 
-export default {
-  port: 3000,
-  fetch: app.fetch,
-};
+export default app;
