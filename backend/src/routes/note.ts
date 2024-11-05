@@ -24,10 +24,9 @@ note
     "/",
     zValidator("json", noteSchema, (result, c) => {
       if (!result.success) {
-        return c.json(
-          { message: "invalid data", errors: result.error.issues[0].message },
-          400,
-        );
+        throw new HTTPException(400, {
+          message: result.error.issues[0].message,
+        });
       }
     }),
     async (c) => {
@@ -65,9 +64,8 @@ note
   .patch(
     zValidator("json", noteSchema, (result, c) => {
       if (!result.success) {
-        return c.json({
-          message: "invalid update note",
-          error: result.error.issues[0].message,
+        throw new HTTPException(400, {
+          message: result.error.issues[0].message,
         });
       }
     }),
