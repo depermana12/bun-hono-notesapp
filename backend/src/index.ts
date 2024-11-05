@@ -1,9 +1,17 @@
 import { Hono } from "hono";
-import user from "./routes/auth";
+import userHandler from "./routes/auth";
+import noteHandler from "./routes/note";
 import { HTTPException } from "hono/http-exception";
+import jwtMiddleware from "./middlewares/jwtMiddleware";
 
 const app = new Hono().basePath("/api/v1");
-app.route("/auth", user);
+
+// public routes
+app.route("/auth", userHandler);
+
+// protected routes
+app.use(jwtMiddleware);
+app.route("/notes", noteHandler);
 
 app.onError((err, c) => {
   if (err instanceof HTTPException) {
