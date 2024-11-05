@@ -2,26 +2,17 @@ import { eq } from "drizzle-orm";
 import db from "../db/db";
 import { users } from "../db/schema";
 
-type NewUserData = {
-  name: string;
-  email: string;
-  password: string;
-};
-type User = typeof users.$inferInsert & { id: number };
-type SafeUser = Omit<User, "password">;
+type User = typeof users.$inferSelect;
+type AddUser = typeof users.$inferInsert;
+type AddUserResponse = Omit<User, "password">;
 
 class UserRepository {
-  public async addUser(userData: NewUserData): Promise<SafeUser> {
+  public async addUser(userData: AddUser): Promise<AddUserResponse> {
     try {
-      const rows = await db.insert(users).values(userData).returning({
-        id: users.id,
-        name: users.name,
-        email: users.email,
-        created_at: users.createdAt,
-      });
-      return rows[0];
+      const rows = await db.insert(users).values(userData).returning();
+      const { password, ...newUser } = rows[0];
+      return newUser;
     } catch (error) {
-      //TODO throw to global error handler
       throw new Error(error instanceof Error ? error.message : String(error));
     }
   }
@@ -34,7 +25,7 @@ class UserRepository {
         .select()
         .from(users)
         .where(eq(users.email, userEmail));
-      return rows[0] || null;
+      return rows[0];
     } catch (error) {
       throw new Error(
         error instanceof Error ? "error email not found" : String(error),
