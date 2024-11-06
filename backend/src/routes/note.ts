@@ -38,11 +38,23 @@ note
   )
   .get(async (c) => {
     const { userId } = c.get("jwtPayload");
-    const notes = await noteService.getNotes(userId);
+    let pageNumber = Number(c.req.query("page")) || 1;
+    let notePerPage = Number(c.req.query("limit")) || 10;
+
+    const { notesList, totalNotes, totalPages, hasNext, hasPrev } =
+      await noteService.getNotes(userId, pageNumber, notePerPage);
     return c.json(
       {
         message: "all notes",
-        data: notes,
+        data: {
+          paginated: {
+            notes: notesList,
+            totalNotes,
+            totalPages,
+            hasNext,
+            hasPrev,
+          },
+        },
       },
       200,
     );

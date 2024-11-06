@@ -18,9 +18,20 @@ class NoteService {
     }
     return note;
   }
-  public getNotes(userId: number) {
-    return this.noteRepository.findAll(userId);
+  public async getNotes(userId: number, page: number, limit: number) {
+    const offset = (page - 1) * limit;
+    const [totalNotes, notesList] = await Promise.all([
+      this.noteRepository.countNotes(userId),
+      this.noteRepository.findNotes(userId, limit, offset),
+    ]);
+    console.log(totalNotes);
+    const totalPages = Math.ceil(totalNotes / limit);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
+
+    return { notesList, totalNotes, totalPages, hasNext, hasPrev };
   }
+
   public updateNote(
     noteId: number,
     title: string,
