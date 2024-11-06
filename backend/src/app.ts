@@ -17,6 +17,10 @@ app.route("/auth", userHandler);
 app.use(jwtMiddleware);
 app.route("/notes", noteHandler);
 
+app.notFound((c) => {
+  return c.json({ error: "you lost bruh" }, 404);
+});
+
 app.onError((err, c) => {
   if (err instanceof HTTPException) {
     return c.json({ error: err.message }, err.status);
