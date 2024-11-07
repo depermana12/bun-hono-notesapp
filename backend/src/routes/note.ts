@@ -16,6 +16,11 @@ const noteSchema = z.object({
   content: z.string().min(3, { message: "Must be 3 or more characters long" }),
 });
 
+const paginatedQuerySchema = z.object({
+  page: z.number().optional(),
+  limit: z.number().optional(),
+});
+
 const noteService = new NoteService();
 const note = new Hono<{ Variables: Variables }>();
 
@@ -36,29 +41,39 @@ note
       return c.json({ message: "note created", data: note }, 201);
     },
   )
-  .get(async (c) => {
-    const { userId } = c.get("jwtPayload");
-    let pageNumber = Number(c.req.query("page")) || 1;
-    let notePerPage = Number(c.req.query("limit")) || 10;
+  .get(
+    zValidator("query", paginatedQuerySchema, (result, c) => {
+      if (!result.success) {
+        throw new HTTPException(400, {
+          message: result.error.issues[0].message,
+        });
+      }
+    }),
+    async (c) => {
+      const { userId } = c.get("jwtPayload");
+      const { page, limit } = c.req.valid("query");
+      let pageNumber = Number(page) || 1;
+      let notePerPage = Number(limit) || 10;
 
-    const { notesList, totalNotes, totalPages, hasNext, hasPrev } =
-      await noteService.getNotes(userId, pageNumber, notePerPage);
-    return c.json(
-      {
-        message: "all notes",
-        data: {
-          paginated: {
-            notes: notesList,
-            totalNotes,
-            totalPages,
-            hasNext,
-            hasPrev,
+      const { notesList, totalNotes, totalPages, hasNext, hasPrev } =
+        await noteService.getNotes(userId, pageNumber, notePerPage);
+      return c.json(
+        {
+          message: "all notes",
+          data: {
+            paginated: {
+              notes: notesList,
+              totalNotes,
+              totalPages,
+              hasNext,
+              hasPrev,
+            },
           },
         },
-      },
-      200,
-    );
-  });
+        200,
+      );
+    },
+  );
 
 note
   .get("/:id", async (c) => {
