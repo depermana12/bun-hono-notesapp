@@ -11,8 +11,8 @@ class NoteService {
   public createNote(noteData: NoteData, userId: number) {
     return this.noteRepository.create(noteData, userId);
   }
-  public getNote(noteId: number, userId: number) {
-    const note = this.noteRepository.findById(noteId, userId);
+  public async getNote(noteId: number, userId: number) {
+    const note = await this.noteRepository.findById(noteId, userId);
     if (!note) {
       throw new HTTPException(404, { message: "note not found" });
     }
@@ -32,24 +32,24 @@ class NoteService {
     return { notesList, totalNotes, totalPages, hasNext, hasPrev };
   }
 
-  public updateNote(
+  public async updateNote(
     noteId: number,
     title: string,
     content: string,
     userId: number,
   ) {
-    const note = this.noteRepository.findById(noteId, userId);
+    const note = await this.noteRepository.findById(noteId, userId);
     if (!note) {
       throw new HTTPException(404, { message: "note not found" });
     }
     return this.noteRepository.update(noteId, title, content, userId);
   }
-  public deleteNote(noteId: number, userId: number) {
+  public async deleteNote(noteId: number, userId: number) {
     const note = this.noteRepository.findById(noteId, userId);
     if (!note) {
       throw new HTTPException(404, { message: "note not found" });
     }
-    return this.noteRepository.delete(noteId, userId);
+    return await this.noteRepository.delete(noteId, userId);
   }
 }
 
