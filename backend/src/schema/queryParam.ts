@@ -1,39 +1,41 @@
 import { z } from "@hono/zod-openapi";
 
-export const paramSchema = z.object({
-  id: z
-    .string()
-    .min(3)
-    .openapi({
-      param: {
-        name: "id",
-        in: "path",
-      },
-      example: "1212121",
-    }),
+export const ParamSchema = z.object({
+  id: z.string().openapi({
+    param: {
+      name: "id",
+      in: "path",
+      description: "unique number as identifier for the note",
+    },
+    example: "4",
+  }),
 });
 
-export const querySchema = z.object({
-  page: z
-    .number()
-    .positive()
-    .optional()
-    .openapi({
-      param: {
-        name: "page",
-        in: "query",
-      },
-      example: 1,
-    }),
-  limit: z
-    .number()
-    .positive()
-    .optional()
-    .openapi({
-      param: {
-        name: "limit",
-        in: "query",
-      },
-      example: 10,
-    }),
-});
+export const querySchema = z
+  .object({
+    page: z
+      .number()
+      .positive()
+      .optional()
+      .openapi({
+        param: {
+          name: "page",
+          in: "query",
+          description: "Page number for pagination",
+        },
+        example: 1,
+      }),
+    limit: z
+      .number()
+      .positive()
+      .optional()
+      .openapi({
+        param: {
+          name: "limit",
+          in: "query",
+          description: "Number of notes per page",
+        },
+        example: 10,
+      }),
+  })
+  .openapi("Query");

@@ -1,9 +1,7 @@
-import { Hono } from "hono";
 import NoteService from "../services/note";
-import { zValidator } from "@hono/zod-validator";
-import { z } from "zod";
 import type { JwtVariables } from "hono/jwt";
-import { HTTPException } from "hono/http-exception";
+import { OpenAPIHono } from "@hono/zod-openapi";
+import * as r from "../openApi/route/note";
 
 type JwtPayload = {
   userId: number;
@@ -11,112 +9,74 @@ type JwtPayload = {
 };
 type Variables = JwtVariables<JwtPayload>;
 
-const noteSchema = z.object({
-  title: z.string().min(3, { message: "Must be 3 or more characters long" }),
-  content: z.string().min(3, { message: "Must be 3 or more characters long" }),
-});
-
-const paginatedQuerySchema = z.object({
-  page: z.number().optional(),
-  limit: z.number().optional(),
-});
-
 const noteService = new NoteService();
-const note = new Hono<{ Variables: Variables }>();
+const note = new OpenAPIHono<{ Variables: Variables }>();
 
 note
-  .post(
-    "/",
-    zValidator("json", noteSchema, (result, c) => {
-      if (!result.success) {
-        throw new HTTPException(400, {
-          message: result.error.issues[0].message,
-        });
-      }
-    }),
-    async (c) => {
-      const validatedNote = c.req.valid("json");
-      const { userId } = c.get("jwtPayload");
-      const note = await noteService.createNote(validatedNote, userId);
-      return c.json({ message: "note created", data: note }, 201);
-    },
-  )
-  .get(
-    zValidator("query", paginatedQuerySchema, (result, c) => {
-      if (!result.success) {
-        throw new HTTPException(400, {
-          message: result.error.issues[0].message,
-        });
-      }
-    }),
-    async (c) => {
-      const { userId } = c.get("jwtPayload");
-      const { page, limit } = c.req.valid("query");
-      let pageNumber = Number(page) || 1;
-      let notePerPage = Number(limit) || 10;
+  .openapi(r.createNoteRoute, async (c) => {
+    const validatedNote = c.req.valid("json");
+    const { userId } = c.get("jwtPayload");
+    const note = await noteService.createNote(validatedNote, userId);
+    return c.json({ message: "note created", data: note }, 201);
+  })
+  .openapi(r.getPaginatedNoteRoute, async (c) => {
+    const { userId } = c.get("jwtPayload");
+    const { page, limit } = c.req.valid("query");
+    let pageNumber = Number(page) || 1;
+    let notePerPage = Number(limit) || 10;
 
-      const { notesList, totalNotes, totalPages, hasNext, hasPrev } =
-        await noteService.getNotes(userId, pageNumber, notePerPage);
-      return c.json(
-        {
-          message: "all notes",
-          data: {
-            paginated: {
-              notes: notesList,
-              totalNotes,
-              totalPages,
-              hasNext,
-              hasPrev,
-            },
+    const { notesList, totalNotes, totalPages, hasNext, hasPrev } =
+      await noteService.getNotes(userId, pageNumber, notePerPage);
+    return c.json(
+      {
+        message: "all notes",
+        data: {
+          paginated: {
+            notes: notesList,
+            totalNotes,
+            totalPages,
+            hasNext,
+            hasPrev,
           },
         },
-        200,
-      );
-    },
-  );
+      },
+      200,
+    );
+  });
 
 note
-  .get("/:id", async (c) => {
+  .openapi(r.getNoteRoute, async (c) => {
     const noteId = c.req.param("id");
     const { userId } = c.get("jwtPayload");
     const note = await noteService.getNote(Number(noteId), userId);
     return c.json(
       {
-        message: "success get note",
+        message: "success get a note",
         data: note,
       },
       200,
     );
   })
-  .patch(
-    zValidator("json", noteSchema, (result, c) => {
-      if (!result.success) {
-        throw new HTTPException(400, {
-          message: result.error.issues[0].message,
-        });
-      }
-    }),
-    async (c) => {
-      const { title, content } = c.req.valid("json");
-      const id = c.req.param("id");
-      const { userId } = c.get("jwtPayload");
-      const noteUpdated = await noteService.updateNote(
-        Number(id),
-        title,
-        content,
-        userId,
-      );
+  .openapi(r.updateNoteRoute, async (c) => {
+    const { title, content } = c.req.valid("json");
+    const id = c.req.param("id");
+    const { userId } = c.get("jwtPayload");
+    const noteUpdated = await noteService.updateNote(
+      Number(id),
+      title,
+      content,
+      userId,
+    );
 
-      return c.json(
-        {
-          message: "note updated",
-          data: noteUpdated,
-        },
-        200,
-      );
-    },
-  )
-  .delete(async (c) => {
+    return c.json(
+      {
+        message: "note updated",
+        data: noteUpdated,
+      },
+      200,
+    );
+  })
+  .openapi(r.deleteNoteRoute, async (c) => {
     const noteId = c.req.param("id");
     const { userId } = c.get("jwtPayload");
     const noteDeleted = await noteService.deleteNote(Number(noteId), userId);

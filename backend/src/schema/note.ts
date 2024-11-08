@@ -42,8 +42,22 @@ export const CreateNoteSchema = z
   })
   .openapi("CreateNote");
 
-export const UpdateNoteSchema =
-  CreateNoteSchema.partial().openapi("UpdateNote");
+export const UpdateNoteSchema = CreateNoteSchema.openapi("UpdateNote");
+
+export const DeleteNoteScema = z.object({
+  id: z.number().positive().openapi({
+    example: 1,
+    description: "Unique identifier for the note",
+  }),
+  userId: z.number().positive().openapi({
+    example: 1,
+    description: "ID of the user who owns this note",
+  }),
+  title: z.string().min(1).max(255).openapi({
+    example: "Meeting Notes",
+    description: "Title of the note",
+  }),
+});
 
 export const paginatedNotes = z.object({
   notes: z.array(NoteSchema),

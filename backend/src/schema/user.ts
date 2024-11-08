@@ -38,7 +38,7 @@ export const CreateUserSchema = z
   })
   .openapi("CreateUser");
 
-export const LoginUserSchema = CreateUserSchema.pick({
+export const SignInUserSchema = CreateUserSchema.pick({
   email: true,
   password: true,
 }).openapi("LoginUser");
