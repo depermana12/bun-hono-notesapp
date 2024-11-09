@@ -36,6 +36,11 @@ class AuthService {
     return { user: userNoPw, token };
   }
 
+  public async signOut(userId: number) {
+    // Invalidate refresh token, i don't have it yet
+    return { message: "User signed out successfully" };
+  }
+
   private generateToken(userId: number) {
     const expiresIn = Math.floor((Date.now() + 1000 * 60 * 60 * 24 * 7) / 1000); // 7 days
     return sign({ userId, exp: expiresIn }, "mieayam");

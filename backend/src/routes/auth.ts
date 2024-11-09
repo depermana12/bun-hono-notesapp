@@ -31,4 +31,10 @@ user.openapi(r.signInRoute, async (c) => {
   );
 });
 
+user.openapi(r.signOutRoute, async (c) => {
+  const { user } = c.get("jwtPayload");
+  await auth.signOut(user);
+  return c.json({ message: "user signed out" }, 200);
+});
+
 export default user;

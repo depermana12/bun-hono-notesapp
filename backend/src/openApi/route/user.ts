@@ -69,3 +69,15 @@ export const signInRoute = createRoute({
     },
   },
 });
+
+export const signOutRoute = createRoute({
+  method: "get",
+  path: "/signout",
+  tags: ["user"],
+  description: "logout a user",
+  responses: {
+    200: {
+      description: "logged out",
+    },
+  },
+});
