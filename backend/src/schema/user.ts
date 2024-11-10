@@ -43,6 +43,51 @@ export const SignInUserSchema = CreateUserSchema.pick({
   password: true,
 }).openapi("LoginUser");
 
+export const ForgetPasswordSchema = z
+  .object({
+    email: z.string().email().openapi({
+      example: "johndoe@example.com",
+      description: "user's email address",
+    }),
+  })
+  .openapi("forgetPassword");
+
+export const ResetPasswordSchema = z
+  .object({
+    password: z.string().min(8).openapi({
+      example: "n3wP@ssw0rd",
+      description: "new password for the user",
+    }),
+    confirmPassword: z.string().min(8).openapi({
+      example: "n3wP@ssw0rd",
+      description: "confirm new password for the user",
+    }),
+  })
+  .superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "password and confirmPassword must match",
+        path: ["confirmPassword"],
+      });
+    }
+  })
+  .openapi("resetPassword");
+
+export const ForgetPasswordResponseSchema = z
+  .object({
+    message: z
+      .string()
+      .openapi({ example: "email sent with instructions to reset password" }),
+  })
+  .openapi("forgetPasswordResponse");
+
+export const ResetPasswordResponseSchema = z
+  .object({
+    message: z.string().openapi({ example: "password reset successful" }),
+  })
+  .openapi("resetPasswordResponse");
+
 export const generateUserResponseSchema = (
   dataSchema: z.ZodObject<any>,
   message: string,
