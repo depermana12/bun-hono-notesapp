@@ -58,6 +58,19 @@ export const ResetPasswordSchema = z
       example: "n3wP@ssw0rd",
       description: "new password for the user",
     }),
+    confirmPassword: z.string().min(8).openapi({
+      example: "n3wP@ssw0rd",
+      description: "confirm new password for the user",
+    }),
+  })
+  .superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "password and confirmPassword must match",
+        path: ["confirmPassword"],
+      });
+    }
   })
   .openapi("resetPassword");
 

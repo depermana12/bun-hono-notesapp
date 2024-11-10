@@ -147,7 +147,7 @@ export const resetPasswordRoute = createRoute({
       description: "failed to reset password",
       content: {
         "application/json": {
-          schema: s.ResetPasswordResponseSchema,
+          schema: ErrorSchema,
         },
       },
     },

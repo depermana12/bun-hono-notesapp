@@ -7,12 +7,14 @@ services:
       - 3000:3000
     depends_on:
       - db
+    env_file:
+      - backend/.env
 
   db:
     image: postgres
     restart: always
     env_file:
-      - .env
+      - backend/.env
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
