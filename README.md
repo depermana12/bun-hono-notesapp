@@ -33,16 +33,32 @@ Create a .env
 ```
 DB_USER=hononotes
 DB_PASSWORD=hononotes
-DB_HOST=localhost
+DB_HOST=db // name of db container in docker compose
 DB_PORT=5432
 DB_NAME=hononotes
 DB_URL=postgres://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME
+
+JWT_SERCRET=secret
 ```
 
 Run with Docker
 
 ```
 docker compose up --build
+```
+
+push database schema
+
+- run shell in api container
+
+```
+docker exec -it <api-container-name/sha> /bin/bash
+```
+
+- run script
+
+```
+bun run db:push
 ```
 
 ### License
