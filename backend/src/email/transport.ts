@@ -1,12 +1,12 @@
 import { createTransport } from "nodemailer";
 
 const transporter = createTransport({
-  host: "sandbox.smtp.mailtrap.io",
-  port: 2525,
+  host: Bun.env.EMAIL_HOST!,
+  port: Number(Bun.env.EMAIL_PORT!),
   secure: false,
   auth: {
-    user: "1be538d4333169",
-    pass: "d1bb6a40534a1d",
+    user: Bun.env.EMAIL_USER!,
+    pass: Bun.env.EMAIL_PASS!,
   },
 });
 
