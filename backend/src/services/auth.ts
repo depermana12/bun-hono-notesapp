@@ -89,11 +89,11 @@ class AuthService {
 
   private generateToken(userId: number) {
     const expiresIn = Math.floor((Date.now() + 1000 * 60 * 60 * 24 * 7) / 1000); // 7 days
-    return sign({ userId, exp: expiresIn }, "mieayam");
+    return sign({ userId, exp: expiresIn }, Bun.env.JWT_SECRET!);
   }
 
-  private verifyToken(token: string) {
-    return verify(token, "mieayam");
+  public verifyToken(token: string) {
+    return verify(token, Bun.env.JWT_SECRET!);
   }
 
   private decodeToken(token: string): { payload: Payload } {

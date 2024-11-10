@@ -5,7 +5,6 @@ export default defineConfig({
   schema: "./src/db/schema.ts",
   out: "./drizzle",
   dbCredentials: {
-    url: "postgres://hononotes:hononotes@db:5432/hononotes",
-    ssl: false,
+    url: Bun.env.DB_URL!,
   },
 });
