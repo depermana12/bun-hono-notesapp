@@ -44,4 +44,6 @@ app.onError((err, c) => {
   return c.json({ error: "oopss thats on us" }, 500);
 });
 
+export type AppType = typeof app;
+
 export default app;
