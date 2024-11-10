@@ -2,6 +2,7 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import userHandler from "./routes/auth";
 import noteHandler from "./routes/note";
+import { serveStatic } from "hono/bun";
 import { HTTPException } from "hono/http-exception";
 import jwtMiddleware from "./middlewares/jwtMiddleware";
 import { OpenAPIHono } from "@hono/zod-openapi";
@@ -11,7 +12,8 @@ import { apiReference } from "@scalar/hono-api-reference";
 const app = new OpenAPIHono().basePath("/api/v1");
 app.use(cors());
 app.use(logger());
-
+app.get("*", serveStatic({ root: "./frontend/dist" }));
+app.get("*", serveStatic({ path: "./frontend/dist/index.html" }));
 app.doc("/docs", openApiConfig);
 app.get(
   "/reference",
