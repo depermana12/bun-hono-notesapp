@@ -3,7 +3,7 @@ import { jwt } from "hono/jwt";
 
 const jwtMiddleware = createMiddleware((c, next) => {
   const jwtHandler = jwt({
-    secret: "mieayam", // there is problem in bun to get .env
+    secret: Bun.env.JWT_SECRET!,
   });
   return jwtHandler(c, next);
 });
