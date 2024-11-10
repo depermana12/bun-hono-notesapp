@@ -11,6 +11,19 @@ export const ParamSchema = z.object({
   }),
 });
 
+export const TokenSchema = z
+  .object({
+    token: z.string().openapi({
+      param: {
+        name: "token",
+        in: "path",
+        description: "short-lived token for resetting password",
+      },
+      example: "IjoiYXV0aCIsImV4cCI6MTYyNj...",
+    }),
+  })
+  .openapi("TokenResponse");
+
 export const querySchema = z
   .object({
     page: z

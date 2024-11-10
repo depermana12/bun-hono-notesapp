@@ -32,6 +32,22 @@ class UserRepository {
       );
     }
   }
+
+  public async updateUser(
+    userId: number,
+    userData: Partial<User>,
+  ): Promise<AddUserResponse> {
+    try {
+      const rows = await db
+        .update(users)
+        .set(userData)
+        .where(eq(users.id, userId))
+        .returning();
+      return rows[0];
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : String(error));
+    }
+  }
 }
 
 export default UserRepository;

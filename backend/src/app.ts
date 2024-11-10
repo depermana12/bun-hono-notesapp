@@ -9,7 +9,6 @@ import { openApiConfig } from "./openApi/config";
 import { apiReference } from "@scalar/hono-api-reference";
 
 const app = new OpenAPIHono().basePath("/api/v1");
-
 app.use(cors());
 app.use(logger());
 
