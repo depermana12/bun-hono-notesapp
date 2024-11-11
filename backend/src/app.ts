@@ -5,29 +5,13 @@ import noteHandler from "./routes/note";
 import { serveStatic } from "hono/bun";
 import { HTTPException } from "hono/http-exception";
 import jwtMiddleware from "./middlewares/jwtMiddleware";
-import { OpenAPIHono } from "@hono/zod-openapi";
-import { openApiConfig } from "./openApi/config";
-import { apiReference } from "@scalar/hono-api-reference";
+import { Hono } from "hono";
 
-const app = new OpenAPIHono().basePath("/api/v1");
+const app = new Hono().basePath("/api/v1");
 app.use(cors());
 app.use(logger());
 app.get("*", serveStatic({ root: "./frontend/dist" }));
 app.get("*", serveStatic({ path: "./frontend/dist/index.html" }));
-app.doc("/docs", openApiConfig);
-app.get(
-  "/reference",
-  apiReference({
-    spec: {
-      url: "/api/v1/docs",
-    },
-  }),
-);
-app.openAPIRegistry.registerComponent("securitySchemes", "Bearer", {
-  type: "http",
-  scheme: "bearer",
-  bearerFormat: "JWT",
-});
 
 app.route("/auth", userHandler);
 app.use(jwtMiddleware);
@@ -43,7 +27,5 @@ app.onError((err, c) => {
   }
   return c.json({ error: "oopss thats on us" }, 500);
 });
-
-export type AppType = typeof app;
 
 export default app;

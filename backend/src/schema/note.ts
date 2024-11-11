@@ -1,90 +1,38 @@
-import { z } from "@hono/zod-openapi";
+import { z } from "zod";
 
-export const NoteSchema = z
-  .object({
-    id: z.number().positive().openapi({
-      example: 1,
-      description: "Unique identifier for the note",
-    }),
-    userId: z.number().positive().openapi({
-      example: 1,
-      description: "ID of the user who owns this note",
-    }),
-    title: z.string().min(1).max(255).openapi({
-      example: "Meeting Notes",
-      description: "Title of the note",
-    }),
-    content: z.string().openapi({
-      example: "Discussed project timeline and deliverables...",
-      description: "Content of the note",
-    }),
-    created_at: z.date().openapi({
-      example: "2024-03-08T12:00:00Z",
-      description: "Timestamp when the note was created",
-    }),
-    updated_at: z.date().nullable().openapi({
-      example: "2024-03-08T14:30:00Z",
-      description: "Timestamp when the note was last updated",
-    }),
-  })
-  .openapi("Note");
+export const NoteSchema = z.object({
+  id: z.number().positive(),
+  userId: z.number().positive(),
+  title: z.string().min(1).max(255),
+  content: z.string(),
+  created_at: z.date(),
+  updated_at: z.date().nullable(),
+});
 
-export const CreateNoteSchema = z
-  .object({
-    title: z.string().min(1).max(255).openapi({
-      example: "Meeting Notes",
-      description: "Title of the note",
-    }),
-    content: z.string().openapi({
-      example: "Discussed project timeline and deliverables...",
-      description: "Content of the note",
-    }),
-  })
-  .openapi("CreateNote");
+export const CreateNoteSchema = z.object({
+  title: z.string().min(1).max(255),
+  content: z.string(),
+});
 
-export const UpdateNoteSchema = CreateNoteSchema.openapi("UpdateNote");
+export const UpdateNoteSchema = CreateNoteSchema;
 
 export const DeleteNoteScema = z.object({
-  id: z.number().positive().openapi({
-    example: 1,
-    description: "Unique identifier for the note",
-  }),
-  userId: z.number().positive().openapi({
-    example: 1,
-    description: "ID of the user who owns this note",
-  }),
-  title: z.string().min(1).max(255).openapi({
-    example: "Meeting Notes",
-    description: "Title of the note",
-  }),
+  id: z.number().positive(),
+  userId: z.number().positive(),
+  title: z.string().min(1).max(255),
 });
 
 export const paginatedNotes = z.object({
   notes: z.array(NoteSchema),
-  totalNotes: z.number().positive().openapi({
-    example: 10,
-    description: "Total number of notes",
-  }),
-  totalPages: z.number().positive().openapi({
-    example: 2,
-    description: "Current page number",
-  }),
-  hasNext: z.boolean().openapi({
-    example: true,
-    description: "Flag indicating if there are more pages",
-  }),
-  hasPrev: z.boolean().openapi({
-    example: false,
-    description: "Flag indicating if there are previous pages",
-  }),
+  totalNotes: z.number().positive(),
+  totalPages: z.number().positive(),
+  hasNext: z.boolean(),
+  hasPrev: z.boolean(),
 });
 
-export const generateNoteResponseSchema = (
-  dataSchema: z.ZodObject<any>,
-  message: string,
-) => {
+export const generateNoteResponseSchema = (dataSchema: z.ZodObject<any>) => {
   return z.object({
-    message: z.string().openapi({ example: message }),
+    message: z.string(),
     data: dataSchema,
   });
 };

@@ -1,67 +1,31 @@
-import { z } from "@hono/zod-openapi";
+import { z } from "zod";
 
-export const UserSchema = z
-  .object({
-    id: z.number().int().positive().openapi({
-      example: 1,
-      description: "Unique identifier for the user",
-    }),
-    name: z.string().min(1).max(255).openapi({
-      example: "John Doe",
-      description: "User's full name",
-    }),
-    email: z.string().email().openapi({
-      example: "johndoe@example.com",
-      description: "User's email address",
-    }),
-    created_at: z.date().openapi({
-      example: "2024-03-08T12:00:00Z",
-      description: "Timestamp when the user was created",
-    }),
-  })
-  .openapi("User");
+export const UserSchema = z.object({
+  id: z.number().int().positive(),
+  name: z.string().min(1).max(255),
+  email: z.string().email(),
+  created_at: z.date(),
+});
 
-export const CreateUserSchema = z
-  .object({
-    name: z.string().min(1).max(255).openapi({
-      example: "John Doe",
-      description: "User's full name",
-    }),
-    email: z.string().email().openapi({
-      example: "johndoe@example.com",
-      description: "User's email address",
-    }),
-    password: z.string().min(8).openapi({
-      example: "strongpassword",
-      description: "User's password (min 8 characters)",
-    }),
-  })
-  .openapi("CreateUser");
+export const CreateUserSchema = z.object({
+  name: z.string().min(1).max(255),
+  email: z.string().email(),
+  password: z.string().min(8),
+});
 
 export const SignInUserSchema = CreateUserSchema.pick({
   email: true,
   password: true,
-}).openapi("LoginUser");
+});
 
-export const ForgetPasswordSchema = z
-  .object({
-    email: z.string().email().openapi({
-      example: "johndoe@example.com",
-      description: "user's email address",
-    }),
-  })
-  .openapi("forgetPassword");
+export const ForgetPasswordSchema = z.object({
+  email: z.string().email(),
+});
 
 export const ResetPasswordSchema = z
   .object({
-    password: z.string().min(8).openapi({
-      example: "n3wP@ssw0rd",
-      description: "new password for the user",
-    }),
-    confirmPassword: z.string().min(8).openapi({
-      example: "n3wP@ssw0rd",
-      description: "confirm new password for the user",
-    }),
+    password: z.string().min(8),
+    confirmPassword: z.string().min(8),
   })
   .superRefine((data, ctx) => {
     if (data.password !== data.confirmPassword) {
@@ -71,35 +35,20 @@ export const ResetPasswordSchema = z
         path: ["confirmPassword"],
       });
     }
-  })
-  .openapi("resetPassword");
+  });
 
-export const ForgetPasswordResponseSchema = z
-  .object({
-    message: z
-      .string()
-      .openapi({ example: "email sent with instructions to reset password" }),
-  })
-  .openapi("forgetPasswordResponse");
+export const ForgetPasswordResponseSchema = z.object({
+  message: z.string(),
+});
 
-export const ResetPasswordResponseSchema = z
-  .object({
-    message: z.string().openapi({ example: "password reset successful" }),
-  })
-  .openapi("resetPasswordResponse");
+export const ResetPasswordResponseSchema = z.object({
+  message: z.string(),
+});
 
-export const generateUserResponseSchema = (
-  dataSchema: z.ZodObject<any>,
-  message: string,
-) => {
-  return z
-    .object({
-      message: z.string().openapi({ example: message }),
-      data: dataSchema,
-      token: z.string().openapi({
-        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ...",
-        description: "JWT token for the user",
-      }),
-    })
-    .openapi("Token");
+export const generateUserResponseSchema = (dataSchema: z.ZodObject<any>) => {
+  return z.object({
+    message: z.string(),
+    data: dataSchema,
+    token: z.string(),
+  });
 };
