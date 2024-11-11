@@ -1,92 +1,70 @@
 import NoteService from "../services/note";
-import type { JwtVariables } from "hono/jwt";
-import { OpenAPIHono } from "@hono/zod-openapi";
-import * as r from "../openApi/route/note";
-
-type JwtPayload = {
-  userId: number;
-  exp: number;
-};
-type Variables = JwtVariables<JwtPayload>;
+import * as s from "../schema/note";
+import { protectedProcedure, router } from "../trpc";
+import { ParamSchema, QuerySchema } from "../schema/queryParam";
 
 const noteService = new NoteService();
-const note = new OpenAPIHono<{ Variables: Variables }>();
 
-note
-  .openapi(r.createNoteRoute, async (c) => {
-    const validatedNote = c.req.valid("json");
-    const { userId } = c.get("jwtPayload");
-    const note = await noteService.createNote(validatedNote, userId);
-    return c.json({ message: "note created", data: note }, 201);
-  })
-  .openapi(r.getPaginatedNoteRoute, async (c) => {
-    const { userId } = c.get("jwtPayload");
-    const { page, limit } = c.req.valid("query");
-    let pageNumber = Number(page) || 1;
-    let notePerPage = Number(limit) || 10;
-
-    const { notesList, totalNotes, totalPages, hasNext, hasPrev } =
-      await noteService.getNotes(userId, pageNumber, notePerPage);
-    return c.json(
-      {
-        message: "all notes",
+export const noteRouter = router({
+  create: protectedProcedure
+    .input(s.CreateNoteSchema)
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.user.id;
+      const note = await noteService.createNote(input, userId);
+      return {
+        message: "note created",
+        data: note,
+      };
+    }),
+  paginated: protectedProcedure
+    .input(QuerySchema)
+    .query(async ({ input, ctx }) => {
+      const userId = ctx.user.id;
+      let pageNumber = input.page || 1;
+      let notesPerPage = input.limit || 10;
+      const i = await noteService.getNotes(userId, pageNumber, notesPerPage);
+      return {
+        message: "success get paginated notes",
         data: {
           paginated: {
-            notes: notesList,
-            totalNotes,
-            totalPages,
-            hasNext,
-            hasPrev,
+            notes: i.notesList,
+            totalNotes: i.totalNotes,
+            totalPages: i.totalPages,
+            hasNext: i.hasNext,
+            hasPrev: i.hasPrev,
           },
         },
-      },
-      200,
-    );
-  });
-
-note
-  .openapi(r.getNoteRoute, async (c) => {
-    const noteId = c.req.param("id");
-    const { userId } = c.get("jwtPayload");
-    const note = await noteService.getNote(Number(noteId), userId);
-    return c.json(
-      {
-        message: "success get a note",
+      };
+    }),
+  getNote: protectedProcedure
+    .input(ParamSchema)
+    .query(async ({ input, ctx }) => {
+      const note = await noteService.getNote(input.id, ctx.user.id);
+      return {
+        message: "success get note",
         data: note,
-      },
-      200,
-    );
-  })
-  .openapi(r.updateNoteRoute, async (c) => {
-    const { title, content } = c.req.valid("json");
-    const id = c.req.param("id");
-    const { userId } = c.get("jwtPayload");
-    const noteUpdated = await noteService.updateNote(
-      Number(id),
-      title,
-      content,
-      userId,
-    );
-
-    return c.json(
-      {
+      };
+    }),
+  update: protectedProcedure
+    .input(s.UpdateNoteSchema)
+    .mutation(async ({ input, ctx }) => {
+      const updated = await noteService.updateNote(
+        input.id,
+        input.title,
+        input.content,
+        ctx.user.id,
+      );
+      return {
         message: "note updated",
-        data: noteUpdated,
-      },
-      200,
-    );
-  })
-  .openapi(r.deleteNoteRoute, async (c) => {
-    const noteId = c.req.param("id");
-    const { userId } = c.get("jwtPayload");
-    const noteDeleted = await noteService.deleteNote(Number(noteId), userId);
-    return c.json(
-      {
+        data: updated,
+      };
+    }),
+  delete: protectedProcedure
+    .input(ParamSchema)
+    .mutation(async ({ input, ctx }) => {
+      await noteService.deleteNote(input.id, ctx.user.id);
+      return {
         message: "note deleted",
-        data: noteDeleted,
-      },
-      204,
-    );
-  });
-
-export default note;
+      };
+    }),
+});

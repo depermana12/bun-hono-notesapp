@@ -1,15 +1,15 @@
 import AuthService from "../services/auth";
 import * as s from "../schema/user";
-import { HTTPException } from "hono/http-exception";
+import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../trpc";
 import { z } from "zod";
 
 const auth = new AuthService();
 
-export const noteRouter = router({
+export const userRouter = router({
   signup: publicProcedure
     .input(s.CreateUserSchema)
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const { user, token } = await auth.signUp(input);
       return {
         message: "user created",
@@ -19,7 +19,7 @@ export const noteRouter = router({
     }),
   signin: publicProcedure
     .input(s.SignInUserSchema)
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const { user, token } = await auth.signIn(input);
       return {
         message: "user logged in",
@@ -28,13 +28,19 @@ export const noteRouter = router({
       };
     }),
   signout: publicProcedure.input(z.object({})).mutation(async ({ ctx }) => {
-    const { user } = ctx.c.get("jwtPayload");
-    await auth.signOut(user);
+    const userId = ctx.user?.id;
+    if (!userId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User not authenticated",
+      });
+    }
+    await auth.signOut(userId);
     return { message: "user signed out" };
   }),
   forgetPassword: publicProcedure
     .input(s.ForgetPasswordSchema)
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       await auth.forgotPassword(input.email);
       return {
         message: "email sent",
@@ -42,14 +48,22 @@ export const noteRouter = router({
     }),
   resetPassword: publicProcedure
     .input(s.ResetPasswordSchema)
-    .mutation(async ({ input, ctx }) => {
-      const token = ctx.c.param("token");
-      if (!token) {
-        throw new HTTPException(400, { message: "token is required" });
+    .mutation(async ({ input }) => {
+      try {
+        await auth.resetPassword(input.token, input.password);
+        return {
+          message: "password reset successful",
+        };
+      } catch (error) {
+        const message =
+          error instanceof z.ZodError
+            ? error.issues[0].message
+            : "Invalid or expired token";
+
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message,
+        });
       }
-      await auth.resetPassword(token, input.password);
-      return {
-        message: "password reset successful",
-      };
     }),
 });

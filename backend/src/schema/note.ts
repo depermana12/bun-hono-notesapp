@@ -14,7 +14,11 @@ export const CreateNoteSchema = z.object({
   content: z.string(),
 });
 
-export const UpdateNoteSchema = CreateNoteSchema;
+export const UpdateNoteSchema = z.object({
+  id: z.number().positive(),
+  title: z.string().min(1).max(255),
+  content: z.string(),
+});
 
 export const DeleteNoteScema = z.object({
   id: z.number().positive(),
@@ -22,7 +26,7 @@ export const DeleteNoteScema = z.object({
   title: z.string().min(1).max(255),
 });
 
-export const paginatedNotes = z.object({
+export const PaginatedNotes = z.object({
   notes: z.array(NoteSchema),
   totalNotes: z.number().positive(),
   totalPages: z.number().positive(),

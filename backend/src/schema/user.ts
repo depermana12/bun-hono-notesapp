@@ -1,3 +1,4 @@
+import { password } from "bun";
 import { z } from "zod";
 
 export const UserSchema = z.object({
@@ -24,6 +25,7 @@ export const ForgetPasswordSchema = z.object({
 
 export const ResetPasswordSchema = z
   .object({
+    token: z.string(),
     password: z.string().min(8),
     confirmPassword: z.string().min(8),
   })
