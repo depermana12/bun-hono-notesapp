@@ -8,11 +8,12 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@backend": path.resolve(__dirname, "../backend"),
     },
   },
   server: {
     proxy: {
-      "/api/v1": {
+      "/api/trpc": {
         target: "http://localhost:3000",
         changeOrigin: true,
       },

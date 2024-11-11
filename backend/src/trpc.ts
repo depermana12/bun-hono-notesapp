@@ -1,5 +1,4 @@
 import { initTRPC } from "@trpc/server";
-import { isAuthed } from "./middlewares/jwt";
 import { Context } from "hono";
 import { JwtVariables } from "hono/jwt";
 
@@ -17,6 +16,20 @@ type HonoContext = {
 };
 
 const t = initTRPC.context<HonoContext>().create();
+
+export const isAuthed = t.middleware(async (opts) => {
+  const { ctx } = opts;
+  const { userId } = ctx.c.get("jwtPayload");
+
+  return opts.next({
+    ctx: {
+      ...ctx,
+      user: {
+        id: userId,
+      },
+    },
+  });
+});
 
 export const publicProcedure = t.procedure;
 export const protectedProcedure = t.procedure.use(isAuthed);

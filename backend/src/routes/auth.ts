@@ -3,6 +3,7 @@ import * as s from "../schema/user";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../trpc";
 import { z } from "zod";
+import { ParamSchema } from "../schema/queryParam";
 
 const auth = new AuthService();
 
@@ -27,6 +28,13 @@ export const userRouter = router({
         token,
       };
     }),
+  getUser: publicProcedure.input(ParamSchema).query(async ({ input, ctx }) => {
+    const user = await auth.getUser(input.id);
+    console.log(input.id);
+    return {
+      data: user,
+    };
+  }),
   signout: publicProcedure.input(z.object({})).mutation(async ({ ctx }) => {
     const userId = ctx.user?.id;
     if (!userId) {

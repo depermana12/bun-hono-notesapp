@@ -5,7 +5,7 @@ import { trpcServer } from "@hono/trpc-server";
 import { appRouter } from "./routes";
 import { Hono } from "hono";
 
-const app = new Hono().basePath("/api/v1");
+const app = new Hono();
 app.use(logger());
 app.get("*", serveStatic({ root: "./frontend/dist" }));
 app.get("*", serveStatic({ path: "./frontend/dist/index.html" }));

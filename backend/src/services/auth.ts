@@ -42,6 +42,14 @@ class AuthService {
     return { user: userNoPw, token };
   }
 
+  public async getUser(userId: number) {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new HTTPException(404, { message: "User not found" });
+    }
+    return user;
+  }
+
   public async signOut(userId: number) {
     // Invalidate refresh token, i don't have it yet
     return { message: "User signed out successfully" };
