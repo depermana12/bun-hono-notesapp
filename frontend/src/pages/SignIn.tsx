@@ -1,112 +1,28 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { SignInUserSchema } from "@schema/user";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-
-type SignInForm = z.infer<typeof SignInUserSchema>;
+import AuthLayout from "@/components/layouts/AuthLayout";
+import AuthCard from "@/components/auth/AuthCard";
+import SignInForm from "@/components/auth/SignInForm";
 
 const SignIn = () => {
-  const form = useForm<SignInForm>({
-    resolver: zodResolver(SignInUserSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  const onSubmit = (data: SignInForm) => {
-    console.log(data);
+  const metadata = {
+    title: "Sign In",
+    description: "Welcome! Please fill all the details",
+    message: "not have an account?",
+    link: "/signup",
+    linkTitle: "Sign Up",
   };
 
   return (
-    <Card className="mx-auto max-w-sm">
-      <CardHeader>
-        <CardTitle className="text-2xl">Sign In</CardTitle>
-        <CardDescription>Welcome! Please fill all the details</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col space-y-2 "
-          >
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex justify-between ">
-                    <FormLabel htmlFor="email">Email</FormLabel>
-                  </div>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="depermana@email.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex justify-between ">
-                    <FormLabel htmlFor="password">Password</FormLabel>
-                    <Link
-                      className="ml-auto inline-block text-sm underline"
-                      to="/forget-password"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
-                  <FormControl>
-                    <Input type="password" placeholder="password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex flex-col space-y-4 pt-6">
-              <Button type="submit">SignIn</Button>
-              <Button asChild variant="outline">
-                <Link to="/login">Login with Google</Link>
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-      <CardFooter>
-        <small>not have an account?</small>{" "}
-        <Button asChild variant="link">
-          <Link to="/signup">Signup</Link>
-        </Button>
-      </CardFooter>
-    </Card>
+    <AuthLayout>
+      <AuthCard
+        title={metadata.title}
+        description={metadata.description}
+        message={metadata.message}
+        link={metadata.link}
+        linkTitle={metadata.linkTitle}
+      >
+        <SignInForm />
+      </AuthCard>
+    </AuthLayout>
   );
 };
 export default SignIn;
