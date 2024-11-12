@@ -20,55 +20,37 @@ import {
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { CreateUserSchema } from "@schema/user";
+import { SignInUserSchema } from "@schema/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
-type SignUpForm = z.infer<typeof CreateUserSchema>;
+type SignInForm = z.infer<typeof SignInUserSchema>;
 
-const SignUp = () => {
-  const form = useForm<SignUpForm>({
-    resolver: zodResolver(CreateUserSchema),
+const SignIn = () => {
+  const form = useForm<SignInForm>({
+    resolver: zodResolver(SignInUserSchema),
     defaultValues: {
-      name: "",
       email: "",
       password: "",
     },
   });
 
-  const onSubmit = (data: SignUpForm) => {
+  const onSubmit = (data: SignInForm) => {
     console.log(data);
   };
 
   return (
     <Card className="mx-auto max-w-sm">
       <CardHeader>
-        <CardTitle className="text-2xl">Sign Up</CardTitle>
-        <CardDescription>
-          Welcome! Please fill all the details to get started
-        </CardDescription>
+        <CardTitle className="text-2xl">Sign In</CardTitle>
+        <CardDescription>Welcome! Please fill all the details</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col space-y-4 "
+            className="flex flex-col space-y-2 "
           >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex justify-between ">
-                    <FormLabel htmlFor="name">Name</FormLabel>
-                  </div>
-                  <FormControl>
-                    <Input type="text" placeholder="depermana" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="email"
@@ -95,6 +77,12 @@ const SignUp = () => {
                 <FormItem>
                   <div className="flex justify-between ">
                     <FormLabel htmlFor="password">Password</FormLabel>
+                    <Link
+                      className="ml-auto inline-block text-sm underline"
+                      to="/forget-password"
+                    >
+                      Forgot password?
+                    </Link>
                   </div>
                   <FormControl>
                     <Input type="password" placeholder="password" {...field} />
@@ -104,7 +92,7 @@ const SignUp = () => {
               )}
             />
             <div className="flex flex-col space-y-4 pt-6">
-              <Button type="submit">SignUp</Button>
+              <Button type="submit">SignIn</Button>
               <Button asChild variant="outline">
                 <Link to="/login">Login with Google</Link>
               </Button>
@@ -113,12 +101,12 @@ const SignUp = () => {
         </Form>
       </CardContent>
       <CardFooter>
-        <small>already have an account?</small>{" "}
+        <small>not have an account?</small>{" "}
         <Button asChild variant="link">
-          <Link to="/signin">Signin</Link>
+          <Link to="/signup">Signup</Link>
         </Button>
       </CardFooter>
     </Card>
   );
 };
-export default SignUp;
+export default SignIn;
