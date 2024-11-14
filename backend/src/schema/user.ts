@@ -14,10 +14,7 @@ export const CreateUserSchema = z.object({
   password: z.string().min(8),
 });
 
-export const SignInUserSchema = CreateUserSchema.pick({
-  email: true,
-  password: true,
-});
+export const SignInUserSchema = CreateUserSchema.omit({ name: true });
 
 export const ForgetPasswordSchema = z.object({
   email: z.string().email(),

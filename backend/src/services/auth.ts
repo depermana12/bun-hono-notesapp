@@ -2,6 +2,8 @@ import UserRepository from "../repositories/user";
 import { decode, sign, verify } from "hono/jwt";
 import { HTTPException } from "hono/http-exception";
 import sendEmailResetPassword from "../email/transport";
+import { TRPCError } from "@trpc/server";
+import SessionRepository from "../repositories/session";
 
 type UserData = {
   name: string;
@@ -17,14 +19,18 @@ type Payload = {
 type UserLogin = Omit<UserData, "name">;
 
 class AuthService {
-  constructor(private userRepository = new UserRepository()) {}
+  constructor(
+    private userRepository = new UserRepository(),
+    private session = new SessionRepository(),
+  ) {}
   public async signUp(userData: UserData) {
     const hashed = await Bun.password.hash(userData.password);
     const newUser = await this.userRepository.addUser({
       ...userData,
       password: hashed,
     });
-    const token = await this.generateToken(newUser.id);
+
+    const token = await this.createAccessToken(newUser.id);
     return { user: newUser, token };
   }
 
@@ -34,12 +40,25 @@ class AuthService {
       !user ||
       !(await Bun.password.verify(userData.password, user.password))
     ) {
-      throw new HTTPException(401, { message: "Invalid email or password" });
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Invalid email or password",
+        cause: { signIn: "Invalid email or password" },
+      });
     }
-
     const { password, ...userNoPw } = user;
-    const token = await this.generateToken(user.id);
-    return { user: userNoPw, token };
+
+    const accessToken = await this.createAccessToken(user.id);
+    const refreshToken = await this.createRefreshToken(user.id);
+
+    const sessionData = {
+      userId: user.id,
+      token: refreshToken,
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1 week
+    };
+    const storedSession = await this.session.storeSession(sessionData);
+
+    return { user: userNoPw, token: accessToken, storedSession };
   }
 
   public async getUser(userId: number) {
@@ -48,6 +67,17 @@ class AuthService {
       throw new HTTPException(404, { message: "User not found" });
     }
     return user;
+  }
+
+  public async validateEmail(userEmail: string) {
+    const user = await this.userRepository.findByEmail(userEmail);
+    if (user && user.email === userEmail) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Email already in use",
+        cause: { email: "Email already in use" },
+      });
+    }
   }
 
   public async signOut(userId: number) {
@@ -95,13 +125,22 @@ class AuthService {
     await this.userRepository.updateUser(userId, { password: hashed });
   }
 
-  private generateToken(userId: number) {
-    const expiresIn = Math.floor((Date.now() + 1000 * 60 * 60 * 24 * 7) / 1000); // 7 days
-    return sign({ userId, exp: expiresIn }, Bun.env.JWT_SECRET!);
+  public async createAccessToken(userId: number) {
+    const exp = Math.floor((Date.now() + 1000 * 60 * 15) / 1000); // 15 minutes
+    return await sign({ userId, exp }, Bun.env.JWT_SECRET!);
+  }
+
+  public async createRefreshToken(userId: number) {
+    const exp = Math.floor((Date.now() + 1000 * 60 * 60 * 24 * 1) / 1000); // 1 day
+    return await sign({ userId, exp }, "baksosuper");
   }
 
   public verifyToken(token: string) {
     return verify(token, Bun.env.JWT_SECRET!);
+  }
+
+  public verifyRefreshToken(token: string) {
+    return verify(token, Bun.env.REFRESH_JWT_SECRET!);
   }
 
   private decodeToken(token: string): { payload: Payload } {

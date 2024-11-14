@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../trpc";
 import { z } from "zod";
 import { ParamSchema } from "../schema/queryParam";
+import { setCookie } from "hono/cookie";
 
 const auth = new AuthService();
 
@@ -11,6 +12,8 @@ export const userRouter = router({
   signup: publicProcedure
     .input(s.CreateUserSchema)
     .mutation(async ({ input }) => {
+      await auth.validateEmail(input.email);
+
       const { user, token } = await auth.signUp(input);
       return {
         message: "user created",
@@ -20,8 +23,15 @@ export const userRouter = router({
     }),
   signin: publicProcedure
     .input(s.SignInUserSchema)
-    .mutation(async ({ input }) => {
-      const { user, token } = await auth.signIn(input);
+    .mutation(async ({ input, ctx }) => {
+      console.log("hono context", ctx.c);
+      const { user, token, storedSession } = await auth.signIn(input);
+      setCookie(ctx.c, "refresh_token", storedSession.token, {
+        httpOnly: true,
+        expires: storedSession.expires_at,
+        maxAge: 7,
+      });
+
       return {
         message: "user logged in",
         data: user,
@@ -30,7 +40,6 @@ export const userRouter = router({
     }),
   getUser: publicProcedure.input(ParamSchema).query(async ({ input, ctx }) => {
     const user = await auth.getUser(input.id);
-    console.log(input.id);
     return {
       data: user,
     };

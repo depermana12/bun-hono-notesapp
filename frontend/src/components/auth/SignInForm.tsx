@@ -16,6 +16,7 @@ import { useForm } from "react-hook-form";
 import { SignInUserSchema } from "@schema/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { trpc } from "@/utils/trpc";
 
 type SignInForm = z.infer<typeof SignInUserSchema>;
 
@@ -28,8 +29,13 @@ const SignInForm = () => {
     },
   });
 
+  const mutation = trpc.user.signin.useMutation();
   const onSubmit = (data: SignInForm) => {
-    console.log(data);
+    mutation.mutate(data, {
+      onSuccess: (data) => {
+        console.log(data.message);
+      },
+    });
   };
 
   return (

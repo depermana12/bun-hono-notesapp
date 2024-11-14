@@ -1,6 +1,6 @@
 import { eq, and, desc, count } from "drizzle-orm";
 import db from "../db/db";
-import { notes } from "../db/schema";
+import { notes } from "../db/schemas/note";
 import { countAsInt } from "../db/utils";
 
 type Note = typeof notes.$inferSelect;

@@ -1,4 +1,4 @@
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import { Context } from "hono";
 import { JwtVariables } from "hono/jwt";
 
@@ -19,13 +19,20 @@ const t = initTRPC.context<HonoContext>().create();
 
 export const isAuthed = t.middleware(async (opts) => {
   const { ctx } = opts;
-  const { userId } = ctx.c.get("jwtPayload");
+  const payload = ctx.c.get("jwtPayload");
+  console.log(payload);
+  if (!payload || !payload.userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "missing or invalid user token",
+    });
+  }
 
   return opts.next({
     ctx: {
       ...ctx,
       user: {
-        id: userId,
+        id: payload.userId,
       },
     },
   });
