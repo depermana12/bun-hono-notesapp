@@ -1,10 +1,10 @@
-# Notes App API
+# Notes App
 
-Simple notes REST API built using Bun, Hono, Drizzle ORM, and PostgreSQL. This project provides users with the ability to register an account and perform notes operations such as create, update, delete, and view a note. The API is documented with openAPI in scalar for each endpoint.
+Built using Bun, Hono, Drizzle ORM, and PostgreSQL. This project provides users with the ability to register an account and perform notes operations such as create, update, delete, and view a note.
 
 ### API Documentation
 
-Documentation with request and response schemas is available at `documentation branch` make sure to checkout the branch
+The REST API is documented with openAPI in scalar. Available at `documentation` branch make sure to checkout the branch
 
 ```
 git checkout documentation
@@ -12,6 +12,14 @@ git checkout documentation
 
 once the docker container running, the scalar link is available on
 http://localhost:3000/api/v1/reference
+
+### Full App
+
+the full notes app, using react as frontend, coupled with tRPC, available at `frontend` branch.
+
+```
+git checkout frontend
+```
 
 ## Getting Started
 
