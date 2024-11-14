@@ -125,27 +125,46 @@ class AuthService {
     await this.userRepository.updateUser(userId, { password: hashed });
   }
 
-  public async createAccessToken(userId: number) {
+  private async createAccessToken(userId: number) {
     const exp = Math.floor((Date.now() + 1000 * 60 * 15) / 1000); // 15 minutes
     return await sign({ userId, exp }, Bun.env.JWT_SECRET!);
   }
 
-  public async createRefreshToken(userId: number) {
+  private async createRefreshToken(userId: number) {
     const exp = Math.floor((Date.now() + 1000 * 60 * 60 * 24 * 1) / 1000); // 1 day
     return await sign({ userId, exp }, "baksosuper");
   }
 
-  public verifyToken(token: string) {
+  private verifyToken(token: string) {
     return verify(token, Bun.env.JWT_SECRET!);
   }
 
-  public verifyRefreshToken(token: string) {
-    return verify(token, Bun.env.REFRESH_JWT_SECRET!);
+  private verifyRefreshToken(token: string) {
+    return verify(token, "baksosuper");
   }
 
   private decodeToken(token: string): { payload: Payload } {
     const decoded = decode(token);
     return { payload: decoded.payload as Payload };
+  }
+  public async validateRefreshToken(refreshToken: string) {
+    const payload = await this.verifyRefreshToken(refreshToken);
+    if (!payload || !payload.exp || payload.exp < Date.now() / 1000) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Invalid or expired refresh token",
+      });
+    }
+    const {
+      payload: { userId },
+    } = this.decodeToken(refreshToken);
+    const newAccessToken = await this.createAccessToken(userId);
+    const newRefreshToken = await this.createRefreshToken(userId);
+    const updatedSession = await this.session.updateSession(userId, {
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      token: newRefreshToken,
+    }); // 1 week
+    return { newAccessToken, updatedSession };
   }
 }
 

@@ -4,7 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../trpc";
 import { z } from "zod";
 import { ParamSchema } from "../schema/queryParam";
-import { setCookie } from "hono/cookie";
+import { getSignedCookie, setCookie, setSignedCookie } from "hono/cookie";
 
 const auth = new AuthService();
 
@@ -26,11 +26,20 @@ export const userRouter = router({
     .mutation(async ({ input, ctx }) => {
       console.log("hono context", ctx.c);
       const { user, token, storedSession } = await auth.signIn(input);
-      setCookie(ctx.c, "refresh_token", storedSession.token, {
-        httpOnly: true,
-        expires: storedSession.expires_at,
-        maxAge: 7,
-      });
+      await setSignedCookie(
+        ctx.c,
+        "refresh_token",
+        storedSession.token,
+        "baksosuper",
+        {
+          path: "/",
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          expires: storedSession.expires_at, // 1 week
+          maxAge: 7,
+          sameSite: "strict",
+        },
+      );
 
       return {
         message: "user logged in",
@@ -82,5 +91,41 @@ export const userRouter = router({
           message,
         });
       }
+    }),
+  refreshToken: publicProcedure
+    .input(z.object({}))
+    .mutation(async ({ ctx }) => {
+      const refreshToken = await getSignedCookie(
+        ctx.c,
+        "refresh_token",
+        "baksosuper",
+      );
+      if (!refreshToken) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "No refresh token found",
+        });
+      }
+
+      const { newAccessToken, updatedSession } =
+        await auth.validateRefreshToken(refreshToken);
+
+      await setSignedCookie(
+        ctx.c,
+        "refresh_token",
+        updatedSession.token,
+        "baksosuper",
+        {
+          path: "/",
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          expires: updatedSession.expires_at,
+          maxAge: 7,
+        },
+      );
+      return {
+        message: "token refreshed",
+        token: newAccessToken,
+      };
     }),
 });
