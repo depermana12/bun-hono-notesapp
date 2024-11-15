@@ -158,6 +158,7 @@ class AuthService {
     const {
       payload: { userId },
     } = this.decodeToken(refreshToken);
+
     const newAccessToken = await this.createAccessToken(userId);
     const newRefreshToken = await this.createRefreshToken(userId);
     const updatedSession = await this.session.updateSession(userId, {

@@ -1,4 +1,5 @@
 import { password } from "bun";
+import { integer } from "drizzle-orm/pg-core";
 import { z } from "zod";
 
 export const UserSchema = z.object({
@@ -15,6 +16,13 @@ export const CreateUserSchema = z.object({
 });
 
 export const SignInUserSchema = CreateUserSchema.omit({ name: true });
+
+export const SignInUserResponse = z.object({
+  id: z.number(),
+  name: z.string(),
+  email: z.string(),
+  created_at: z.date(),
+});
 
 export const ForgetPasswordSchema = z.object({
   email: z.string().email(),

@@ -24,7 +24,6 @@ export const userRouter = router({
   signin: publicProcedure
     .input(s.SignInUserSchema)
     .mutation(async ({ input, ctx }) => {
-      console.log("hono context", ctx.c);
       const { user, token, storedSession } = await auth.signIn(input);
       await setSignedCookie(
         ctx.c,

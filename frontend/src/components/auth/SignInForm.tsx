@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-
 import {
   Form,
   FormControl,
@@ -10,13 +9,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { SignInUserSchema } from "@schema/user";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Link, useNavigate } from "react-router-dom";
+import { SignInUserSchema } from "@schema/user";
+import { Input } from "@/components/ui/input";
+import { LoaderCircle } from "lucide-react";
+import { useForm } from "react-hook-form";
+import useAuth from "@/hooks/useAuth";
 import { trpc } from "@/utils/trpc";
+import { z } from "zod";
 
 type SignInForm = z.infer<typeof SignInUserSchema>;
 
@@ -29,11 +30,16 @@ const SignInForm = () => {
     },
   });
 
-  const mutation = trpc.user.signin.useMutation();
+  const navigate = useNavigate();
+  const { signIn } = useAuth();
+
+  const signInMut = trpc.user.signin.useMutation();
   const onSubmit = (data: SignInForm) => {
-    mutation.mutate(data, {
+    signInMut.mutate(data, {
       onSuccess: (data) => {
-        console.log(data.message);
+        const { id, name, email } = data.data;
+        signIn({ id, name, email }, data.token);
+        navigate("/dashboard");
       },
     });
   };
@@ -85,9 +91,24 @@ const SignInForm = () => {
           )}
         />
         <div className="flex flex-col space-y-4 pt-6">
-          <Button type="submit">SignIn</Button>
+          <Button type="submit" disabled={signInMut.isLoading}>
+            {signInMut.isLoading && (
+              <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            SignIn
+          </Button>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                or signin with
+              </span>
+            </div>
+          </div>
           <Button asChild variant="outline">
-            <Link to="/login">Login with Google</Link>
+            <Link to="/login">Google</Link>
           </Button>
         </div>
       </form>
